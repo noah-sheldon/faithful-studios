@@ -18,14 +18,15 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center space-x-2 px-4 py-3">
+        <div className="flex items-center justify-center px-4 py-3 group-data-[state=collapsed]:justify-center">
           <Image
             src="/logo.png"
             alt="Faithful Studios Logo"
             width={28}
             height={28}
+            className="min-w-[28px] min-h-[28px]"
           />
-          <span className="font-semibold text-lg text-sidebar-foreground group-data-[state=collapsed]:hidden">
+          <span className="ml-2 font-semibold text-lg text-sidebar-foreground group-data-[state=collapsed]:hidden">
             Faithful Studios
           </span>
         </div>
