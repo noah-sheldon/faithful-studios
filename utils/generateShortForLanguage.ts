@@ -7,6 +7,7 @@ import { composeVideo } from "./composeVideo";
 import { removeBackground } from "./removeBackground";
 import { uploadToHetzner } from "./uploadToHetzner";
 import { prisma } from "@/lib/prisma";
+import { mergeAvatarAndProduct } from "./mergeAvatarAndProduct";
 import { v4 as uuidv4 } from "uuid";
 
 interface GenerateShortParams {
@@ -72,6 +73,28 @@ export async function generateShortForLanguage({
         data: { currentStep: "scene_done" },
       });
 
+      console.log(`[${requestId}] Step: merging avatar and product`);
+
+      const avatarUrl =
+        // "https://fal.media/files/rabbit/JGsbUSmOly3qCX6NVKHIu_feace60f3a494b9ba8b063db64cd940c.png"; // hardcoded just for now
+        "https://fal.media/files/panda/4qN0lxMMWPB743chr3J3z_9fec6608b30a4280ac5ce5c7585b2e2a.png";
+
+      const mergedBuffer = await mergeAvatarAndProduct({
+        avatarUrl,
+        cleanImageUrl,
+        description: description,
+      });
+
+      const mergedImageUrl = await uploadToHetzner(mergedBuffer, "image/png");
+
+      await prisma.videoJob.update({
+        where: { requestId },
+        data: {
+          currentStep: "merged avatar and product",
+          mergedImageUrl,
+        },
+      });
+
       console.log(`[${requestId}] Step: generating script`);
       const script = await generateScriptFromScenes(scenePrompts);
 
@@ -84,7 +107,7 @@ export async function generateShortForLanguage({
         lang === "en" ? script : await translateScript(script, lang);
 
       console.log(`[${requestId}] Step: generating audio`);
-      const audios = await textToSpeech(translatedScript, lang);
+      const audios = await textToSpeech(translatedScript);
 
       await prisma.videoJob.update({
         where: { requestId },
@@ -94,7 +117,7 @@ export async function generateShortForLanguage({
       console.log(`[${requestId}] Step: generating video clips`);
       const clips = await Promise.all(
         scenePrompts.map((scene, i) =>
-          imageToVideo(cleanImageUrl, scene, audios[i].duration)
+          imageToVideo(mergedImageUrl, scene, audios[i].duration)
         )
       );
 

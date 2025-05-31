@@ -26,12 +26,18 @@ export const metadata: Metadata = {
 
 function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-100vh bg-gray-50 w-screen">
+    <div className="flex h-screen w-screen bg-gray-50 overflow-hidden">
+      {/* Sidebar */}
       <AppSidebar />
-      <div className="relative">
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Floating Sidebar Trigger */}
         <SidebarTrigger className="absolute top-4 left-2 z-40 bg-white rounded-md shadow p-2" />
+
+        {/* Main scrollable content */}
+        <main className="flex-1 overflow-y-auto px-6 py-6">{children}</main>
       </div>
-      <main className="flex-1">{children}</main>
     </div>
   );
 }

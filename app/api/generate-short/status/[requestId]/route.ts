@@ -1,18 +1,15 @@
 // app/api/generate-short/status/[requestId]/route.ts
-
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { NextRequest } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { requestId: string } }
+  { params }: { params: Promise<{ requestId: string }> }
 ) {
-  const requestId = params.requestId;
+  const requestId = (await params).requestId;
 
   if (!requestId) {
-    return new Response(JSON.stringify({ error: "Missing requestId" }), {
-      status: 400,
-    });
+    return NextResponse.json({ error: "Missing requestId" }, { status: 400 });
   }
 
   try {
@@ -21,23 +18,18 @@ export async function GET(
     });
 
     if (!job) {
-      return new Response(JSON.stringify({ error: "Job not found" }), {
-        status: 404,
-      });
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    return new Response(
-      JSON.stringify({
-        requestId: job.requestId,
-        status: job.status,
-        videoUrl: job.videoUrl,
-        error: job.error,
-      }),
-      { status: 200 }
-    );
+    return NextResponse.json({
+      requestId: job.requestId,
+      status: job.status,
+      videoUrl: job.videoUrl,
+      error: job.error,
+    });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch status", detail: String(err) }),
+    return NextResponse.json(
+      { error: "Failed to fetch status", detail: String(err) },
       { status: 500 }
     );
   }

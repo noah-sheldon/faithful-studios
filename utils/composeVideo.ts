@@ -56,7 +56,16 @@ export async function composeVideo({
   if (!composedUrl) throw new Error("composeVideo: No video_url returned");
 
   const captioned = await fal.subscribe("fal-ai/auto-caption", {
-    input: { video_url: composedUrl },
+    input: {
+      video_url: composedUrl,
+      txt_color: "white",
+      txt_font: "Arial",
+      font_size: 42,
+      stroke_width: 1,
+      left_align: "center",
+      top_align: "center",
+      refresh_interval: 1.5,
+    },
     logs: false,
   });
 

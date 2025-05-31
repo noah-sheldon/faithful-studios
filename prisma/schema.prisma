@@ -16,6 +16,7 @@ model VideoJob {
   status       String   // "queued" | "processing" | "audio_done" | "done" | "error"
   imageUrl     String?
   cleanImageUrl String?
+  mergedImageUrl String?
   audioUrl     String?
   videoUrl     String?
   error        String?

@@ -10,19 +10,20 @@ fal.config({
 });
 
 export async function imageToVideo(
-  imageUrl: string,
+  mergedImageUrl: string,
   prompt: string,
-  duration: number = 5 // default to 10
+  duration: number = 5 // default to 5
 ): Promise<VideoResult> {
   const result = await fal.subscribe(
     "fal-ai/kling-video/v2.1/standard/image-to-video",
     {
       input: {
         prompt,
-        image_url: imageUrl,
+        image_url: mergedImageUrl,
         duration,
-        negative_prompt: "blur, distort, low quality",
+        negative_prompt: "blur, distort, low quality, no floating objects",
         cfg_scale: 0.5,
+        aspect_ratio: "9:16",
       },
       logs: false,
     }

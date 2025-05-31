@@ -6,29 +6,14 @@ interface AudioResult {
   duration: number;
 }
 
-const voiceMap: Record<string, string> = {
-  en: "Rachel",
-  hi: "Ved",
-  zh: "Yujin",
-  ja: "Keisuke",
-  ko: "Jin",
-  de: "Arnold",
-  fr: "Charlotte",
-  es: "Diego",
-  pt: "Mateus",
-  it: "Luca",
-  ru: "Dmitry",
-};
-
 // Optional: set API key if not using env variable
 fal.config({ credentials: process.env.FAL_KEY });
 
 export async function textToSpeech(
   scriptParts: string[],
-  lang: string
 ): Promise<AudioResult[]> {
   const results: AudioResult[] = [];
-  const voice = voiceMap[lang] || "Rachel";
+  const voice = "Rachel";
 
   for (const text of scriptParts) {
     const result = await fal.subscribe(

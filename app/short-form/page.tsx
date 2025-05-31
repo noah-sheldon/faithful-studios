@@ -63,6 +63,10 @@ export default function ShortForm() {
 
       if (json.status === "completed") {
         toast.success("Generation started.");
+        setDescription("");
+        setSelectedLanguages(["en"]);
+        setImageFile(null);
+        setImagePreview(null);
       } else {
         toast.error("Something went wrong.");
       }
