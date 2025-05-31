@@ -12,6 +12,7 @@ export async function generateScenePrompts(
     You're a world-class video director creating a 30-second viral ad for the product below.
 
     Write 5 short scenes that:
+    - Start with a viral hook or unexpected moment that grabs attention immediately
     - Each feature one person using the product in a natural, realistic setting
     - Highlight a specific benefit, feeling, or outcome of using the product
     - Are visually grounded — no floating objects, fantasy, or unrealistic elements
@@ -19,31 +20,32 @@ export async function generateScenePrompts(
     - Happen in simple everyday locations (desk, couch, gym, kitchen, park, street)
     - Don’t need transitions — each scene can stand alone, like visual beats
     - Each scene must be under 2 lines and no more than 20 words
+     - The third scene should be a natural and compelling call-to-action (e.g., "Check it out now", "Buy today", "Search now") that encourages viewer engagement
 
     Product: "${description}"
 
     Examples:
 
     Product: Noise-cancelling headphones
-    1. A man puts on headphones in a busy café — the background fades, his face relaxes.
-    2. A woman jogs past traffic, music in her ears — no honking, just rhythm.
-    3. A guy works on his laptop with headphones on — focused, undisturbed.
-    4. She taps the side of the headphones, hears her friend speak — ambient mode on.
-    5. Headphones sit on a charging dock — small light glows, ready for tomorrow.
+    1. A crowded café goes silent as a man puts on headphones — instant calm.
+    2. A woman jogs, music flowing, blocking out the city noise.
+    3. She smiles, tapping headphones — “Experience peace. Try yours today.”
+    4. A man focuses at his laptop, undisturbed by chatter around.
+    5. Headphones rest on a sleek dock — ready for tomorrow’s adventure.
 
     Product: Huel (meal replacement drink)
-    1. A student grabs a chilled Huel bottle from the fridge, shakes it, drinks while heading out.
-    2. A gym-goer mixes Huel powder and water in a shaker — drinks, wipes sweat, satisfied.
-    3. A woman lounges on the couch, sipping Huel and scrolling her phone — no meal prep stress.
-    4. A guy skips the lunch line, drinking Huel while already working at his desk.
-    5. An empty bottle drops into the recycling bin — clean and done.
+    1. A student grabs a chilled Huel bottle, catching the morning rush eye.
+    2. At the gym, a quick shake — energy fueling the workout.
+    3. She lounges, sipping Huel — “Skip the prep. Get yours now.”
+    4. A busy professional drinks Huel while typing at a desk.
+    5. The empty bottle lands in recycling — easy and eco-friendly.
 
     Product: Productivity app
-    1. A woman taps “Start Focus” on the app, puts phone down — timer begins, she dives into writing.
-    2. A man gets a gentle notification — “Break time” — he smiles and stretches.
-    3. She checks her daily streak — 12 days straight — small celebratory animation plays.
-    4. He adds a task with voice input — “Buy milk” — it appears instantly.
-    5. App shows progress chart filling slowly — dopamine hit, motivation rising.
+    1. A woman taps “Start Focus” — her world narrows, distractions fade.
+    2. A man stretches after a “Break time” notification — refreshed.
+    3. She glances at a progress streak — “Boost your productivity today.”
+    4. Voice input adds a task — “Buy milk” appears instantly.
+    5. A progress chart fills — motivation building with every task.
 
     Now write 5 grounded, cinematic scenes for the product described above.
     `.trim();
