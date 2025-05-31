@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model VideoJob {
+  id           String   @id @default(uuid())
+  requestId    String   @unique
+  imageUrl     String
+  description  String
+  lang         String
+  status       String   // "queued" | "processing" | "audio_done" | "done" | "error"
+  videoUrl     String?
+  error        String?
+  falAudioJob  String?  // optional Fal job IDs for tracking
+  falVideoJob  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
