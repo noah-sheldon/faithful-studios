@@ -31,7 +31,7 @@ export function AppSidebar() {
             className="min-w-[28px] min-h-[28px]"
           />
           <span className="ml-2 font-semibold text-lg text-sidebar-foreground group-data-[state=collapsed]:hidden">
-            Faithful Studios
+            eSky
           </span>
         </Link>
       </SidebarHeader>

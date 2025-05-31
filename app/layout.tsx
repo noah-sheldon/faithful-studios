@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Faithful Studios",
-  description: "Create and share your content with Faithful Studios",
+  title: "eSky Content Studio",
+  description: "Create and share your content with eSky Studios",
   icons: {
     icon: "/favicon.ico",
   },
