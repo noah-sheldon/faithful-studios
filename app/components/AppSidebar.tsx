@@ -37,13 +37,13 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Dashboard */}
         <SidebarGroup>
           <SidebarGroupLabel className="group-data-[state=collapsed]:hidden">
-            Content
+            Dashboard
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Dashboard Item */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/" className="flex items-center gap-2">
@@ -54,32 +54,61 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-              {/* Short Form */}
+        {/* Video Gen */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[state=collapsed]:hidden">
+            Video Gen
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/short-form" className="flex items-center gap-2">
                     <Video className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
-                      Create Short Form Content
+                      Short Form Promotion
                     </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/short-form-avatar"
+                    className="flex items-center gap-2"
+                  >
+                    <Video className="w-4 h-4" />
+                    <span className="group-data-[state=collapsed]:hidden">
+                      Short Form Avatar
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-              {/* Posters */}
+        {/* Image Gen */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[state=collapsed]:hidden">
+            Image Gen
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/posters" className="flex items-center gap-2">
                     <ImageIcon className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
-                      Create Posters
+                      Posters
                     </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {/* Product Showcase */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link
@@ -88,7 +117,7 @@ export function AppSidebar() {
                   >
                     <Package className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
-                      Create Product Showcase
+                      Product Showcase
                     </span>
                   </Link>
                 </SidebarMenuButton>

@@ -492,7 +492,7 @@ function CompactJobCard({
 
   const statusInfo = getStatusInfo(job.status);
   const StatusIcon = statusInfo.icon;
-  const progressPercent = getProgressPercent(job.currentStep);
+  const progressPercent = getProgressPercent(job.currentStep, job.type);
 
   return (
     <div
@@ -504,47 +504,53 @@ function CompactJobCard({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="font-medium text-slate-900 text-sm cursor-help">
-                #{job.requestId.slice(0, 8)}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-white border border-teal-100 shadow-lg p-3 rounded-lg text-sm text-slate-700">
-              <div className="space-y-2">
-                {job.language && (
-                  <div className="flex gap-1">
-                    <span className="font-semibold text-teal-700">
-                      Language:
-                    </span>
-                    <span>{job.language}</span>
-                  </div>
-                )}
-                {job.description && (
-                  <div>
-                    <div className="font-semibold text-teal-700 mb-0.5">
-                      Description:
+          {job.type === "avatar" ? (
+            <span className="font-medium text-slate-900 text-sm">
+              #{job.requestId.slice(0, 8)}
+            </span>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="font-medium text-slate-900 text-sm cursor-help">
+                  #{job.requestId.slice(0, 8)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm bg-white border border-teal-100 shadow-lg p-3 rounded-lg text-sm text-slate-700">
+                <div className="space-y-2">
+                  {job.language && (
+                    <div className="flex gap-1">
+                      <span className="font-semibold text-teal-700">
+                        Language:
+                      </span>
+                      <span>{job.language}</span>
                     </div>
-                    <p className="text-slate-600 text-xs leading-snug line-clamp-4">
-                      {job.description}
-                    </p>
-                  </div>
-                )}
-                {job.imageUrl && (
-                  <div className="pt-1">
-                    <a
-                      href={job.imageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-teal-600 text-xs underline hover:text-teal-800 transition-colors"
-                    >
-                      View Image
-                    </a>
-                  </div>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
+                  )}
+                  {job.description && (
+                    <div>
+                      <div className="font-semibold text-teal-700 mb-0.5">
+                        Description:
+                      </div>
+                      <p className="text-slate-600 text-xs leading-snug line-clamp-4">
+                        {job.description}
+                      </p>
+                    </div>
+                  )}
+                  {job.imageUrl && (
+                    <div className="pt-1">
+                      <a
+                        href={job.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-teal-600 text-xs underline hover:text-teal-800 transition-colors"
+                      >
+                        View Image
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <Badge
             variant={
@@ -736,17 +742,23 @@ function GridJobCard({
   );
 }
 
-function getProgressPercent(step?: string): number {
-  const steps = [
-    "queued",
-    "bg_removed",
-    "scene_done",
-    "script_done",
-    "tts_done",
-    "video_done",
-    "composed",
-    "done",
-  ];
+function getProgressPercent(step?: string, type?: string): number {
+  const stepsByType: Record<string, string[]> = {
+    avatar: ["queued", "script_done", "avatar_video_done", "done"],
+    default: [
+      "queued",
+      "bg_removed",
+      "scene_done",
+      "script_done",
+      "tts_done",
+      "video_done",
+      "composed",
+      "done",
+    ],
+  };
+
+  const steps = stepsByType[type || "default"] || stepsByType["default"];
   const index = step ? steps.indexOf(step) : 0;
+  if (index === -1) return 0;
   return ((index + 1) / steps.length) * 100;
 }

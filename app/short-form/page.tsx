@@ -92,7 +92,7 @@ export default function ShortForm() {
 
   return (
     <div className="w-full mt-10 px-4 py-8 bg-gradient-to-b from-slate-50 to-white min-h-screen">
-      <div className="container mx-auto">
+      <div className="container max-w-4xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="border-l-4 border-l-teal-500 shadow-md">

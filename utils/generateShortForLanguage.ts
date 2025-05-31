@@ -32,6 +32,7 @@ export async function generateShortForLanguage({
     data: {
       requestId,
       lang,
+      type: "short",
       description,
       status: "queued",
       currentStep: "queued",
