@@ -12,13 +12,17 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
-import { Video, ImageIcon, Package } from "lucide-react";
+import Link from "next/link";
+import { LayoutDashboard, Video, ImageIcon, Package } from "lucide-react";
 
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center justify-center px-4 py-3 group-data-[state=collapsed]:justify-center">
+        <Link
+          href="/"
+          className="flex items-center justify-center px-4 py-3 group-data-[state=collapsed]:justify-center"
+        >
           <Image
             src="/logo.png"
             alt="Faithful Studios Logo"
@@ -29,7 +33,7 @@ export function AppSidebar() {
           <span className="ml-2 font-semibold text-lg text-sidebar-foreground group-data-[state=collapsed]:hidden">
             Faithful Studios
           </span>
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
@@ -39,31 +43,46 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Dashboard Item */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/short-form" className="flex items-center gap-2">
+                  <Link href="/" className="flex items-center gap-2">
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span className="group-data-[state=collapsed]:hidden">
+                      Content Studio
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Short Form */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/short-form" className="flex items-center gap-2">
                     <Video className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
                       Create Short Form Content
                     </span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              {/* Posters */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/posters" className="flex items-center gap-2">
+                  <Link href="/posters" className="flex items-center gap-2">
                     <ImageIcon className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
                       Create Posters
                     </span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              {/* Product Showcase */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a
+                  <Link
                     href="/product-showcase"
                     className="flex items-center gap-2"
                   >
@@ -71,7 +90,7 @@ export function AppSidebar() {
                     <span className="group-data-[state=collapsed]:hidden">
                       Create Product Showcase
                     </span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

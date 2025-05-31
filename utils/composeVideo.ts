@@ -1,64 +1,67 @@
-// utils/composeVideo.ts
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import { fal } from "@fal-ai/client";
 
-interface ComposeInput {
-  videoUrls: string[]; // 3 video clip URLs
-  audioUrls: string[]; // 3 audio clip URLs
-}
+type ComposeInput = {
+  videoUrls: string[];
+  audioUrls: string[];
+};
+
+fal.config({
+  credentials: process.env.FAL_KEY,
+});
 
 export async function composeVideo({
   videoUrls,
   audioUrls,
 }: ComposeInput): Promise<string> {
   if (videoUrls.length !== 3 || audioUrls.length !== 3) {
-    throw new Error("composeVideo: Must provide 3 video and 3 audio URLs");
+    throw new Error(
+      "composeVideo: Must provide exactly 3 video and 3 audio URLs"
+    );
   }
 
-  const requestId = uuidv4();
-  const response = await axios.post(
-    `https://queue.fal.ai/fal-ai/ffmpeg/compose`,
+  const defaultDuration = 5000;
+
+  const tracks = [
     {
-      input: {
-        videos: videoUrls.map((video, i) => ({
-          video,
-          audio: audioUrls[i],
-        })),
-        format: "mp4",
-      },
+      id: "video",
+      type: "video",
+      keyframes: videoUrls.map((url: string, i: number) => ({
+        url,
+        timestamp: i * defaultDuration,
+        duration: defaultDuration,
+      })),
     },
     {
-      headers: {
-        Authorization: `Bearer ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-        "X-Request-ID": requestId,
-      },
-    }
-  );
-
-  const composedUrl = response.data?.output?.video_url;
-  if (!composedUrl)
-    throw new Error("composeVideo: No output video_url returned");
-
-  // 🟡 Auto-caption the composed video
-  const captionRes = await axios.post(
-    "https://queue.fal.ai/fal-ai/auto-caption",
-    {
-      input: {
-        video: composedUrl,
-      },
+      id: "audio",
+      type: "audio",
+      keyframes: audioUrls.map((url: string, i: number) => ({
+        url,
+        timestamp: i * defaultDuration,
+        duration: defaultDuration,
+      })),
     },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  ];
 
-  const finalVideoUrl = captionRes.data?.output?.video_url;
-  if (!finalVideoUrl)
-    throw new Error("composeVideo: Failed to get captioned video");
+  const result = await fal.subscribe("fal-ai/ffmpeg-api/compose", {
+    input: { tracks },
+    logs: true,
+    onQueueUpdate(update: any) {
+      if (update.status === "IN_PROGRESS") {
+        update.logs?.forEach((log: any) => console.log(log.message));
+      }
+    },
+  });
 
-  return finalVideoUrl;
+  const composedUrl = result.data?.video_url;
+  if (!composedUrl) throw new Error("composeVideo: No video_url returned");
+
+  const captioned = await fal.subscribe("fal-ai/auto-caption", {
+    input: { video_url: composedUrl },
+    logs: false,
+  });
+
+  const finalUrl = captioned.data?.video_url;
+  if (!finalUrl) throw new Error("composeVideo: Captioning failed");
+
+  return finalUrl as string;
 }

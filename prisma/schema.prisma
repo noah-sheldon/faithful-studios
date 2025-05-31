@@ -11,14 +11,17 @@ datasource db {
 model VideoJob {
   id           String   @id @default(uuid())
   requestId    String   @unique
-  imageUrl     String
   description  String
   lang         String
   status       String   // "queued" | "processing" | "audio_done" | "done" | "error"
+  imageUrl     String?
+  cleanImageUrl String?
+  audioUrl     String?
   videoUrl     String?
   error        String?
   falAudioJob  String?  // optional Fal job IDs for tracking
   falVideoJob  String?
+  currentStep String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

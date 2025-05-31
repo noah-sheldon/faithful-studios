@@ -1,35 +1,29 @@
-// utils/removeBackground.ts
+import { fal } from "@fal-ai/client";
 import axios from "axios";
-import FormData from "form-data";
 
 /**
- * Removes background from a given image URL using PhotoRoom
- * @param imageUrl Public image URL
- * @returns Cleaned image as a Buffer
+ * Removes background using smoretalk-ai/rembg-enhance
+ * @param imageUrl Publicly accessible image URL
+ * @returns Buffer of the background-removed image
  */
 export async function removeBackground(imageUrl: string): Promise<Buffer> {
-  // Step 1: Download original image
-  const imageResponse = await axios.get(imageUrl, {
+  const result = await fal.subscribe("smoretalk-ai/rembg-enhance", {
+    input: {
+      image_url: imageUrl,
+    },
+    logs: true,
+    onQueueUpdate: (update) => {
+      if (update.status === "IN_PROGRESS") {
+        update.logs?.forEach((log) => console.log(log.message));
+      }
+    },
+  });
+
+  const cleanedImageUrl = result.data.image.url;
+
+  const response = await axios.get(cleanedImageUrl, {
     responseType: "arraybuffer",
   });
-  const imageBuffer = Buffer.from(imageResponse.data);
 
-  // Step 2: Prepare FormData
-  const form = new FormData();
-  form.append("image_file", imageBuffer, "image.jpg");
-
-  // Step 3: Send to PhotoRoom
-  const removeBgResponse = await axios.post(
-    "https://sdk.photoroom.com/v1/segment",
-    form,
-    {
-      headers: {
-        "x-api-key": process.env.PHOTOROOM_API_KEY!,
-        ...form.getHeaders(),
-      },
-      responseType: "arraybuffer",
-    }
-  );
-
-  return Buffer.from(removeBgResponse.data);
+  return Buffer.from(response.data);
 }
