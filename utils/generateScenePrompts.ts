@@ -9,46 +9,28 @@ export async function generateScenePrompts(
   description: string
 ): Promise<string[]> {
   const prompt = `
-    You're a world-class video director creating a 30-second viral ad for the product below.
+You are a professional video director creating a short 30-second product ad composed of 3 distinct scenes.
 
-    Write 5 short scenes that:
-    - Start with a viral hook or unexpected moment that grabs attention immediately
-    - Each feature one person using the product in a natural, realistic setting
-    - Highlight a specific benefit, feeling, or outcome of using the product
-    - Are visually grounded — no floating objects, fantasy, or unrealistic elements
-    - Use clear, physical actions that are easy for AI to generate (e.g. sipping, walking, typing)
-    - Happen in simple everyday locations (desk, couch, gym, kitchen, park, street)
-    - Don’t need transitions — each scene can stand alone, like visual beats
-    - Each scene must be under 2 lines and no more than 20 words
-     - The third scene should be a natural and compelling call-to-action (e.g., "Check it out now", "Buy today", "Search now") that encourages viewer engagement
+Write exactly 3 grounded, cinematic scenes that:
+- Begin with something visually eye-catching or emotionally engaging
+- Each feature one person using the product in a realistic and natural setting
+- Are gender-appropriate and avoid mismatches (e.g., avoid a man wearing a woman's dress unless contextually relevant)
+- Use realistic, simple physical actions easy to animate or film (e.g. sipping, walking, typing)
+- Are set in familiar locations (kitchen, street, gym, office, bedroom, etc.)
+- Each line must be short: under 20 words, and no more than 2 lines of text
+- The third scene must be a natural call-to-action, like “Try it today”, “Available now”, etc.
 
-    Product: "${description}"
+Product: "${description}"
 
-    Examples:
+Examples:
 
-    Product: Noise-cancelling headphones
-    1. A crowded café goes silent as a man puts on headphones — instant calm.
-    2. A woman jogs, music flowing, blocking out the city noise.
-    3. She smiles, tapping headphones — “Experience peace. Try yours today.”
-    4. A man focuses at his laptop, undisturbed by chatter around.
-    5. Headphones rest on a sleek dock — ready for tomorrow’s adventure.
+Product: Running shoes
+1. A woman laces up on her doorstep as morning light hits — she bolts off smiling.
+2. A man jogs past traffic, feet pounding pavement — lightweight and focused.
+3. Shoes by the door — “Run your way. Get yours now.”
 
-    Product: Huel (meal replacement drink)
-    1. A student grabs a chilled Huel bottle, catching the morning rush eye.
-    2. At the gym, a quick shake — energy fueling the workout.
-    3. She lounges, sipping Huel — “Skip the prep. Get yours now.”
-    4. A busy professional drinks Huel while typing at a desk.
-    5. The empty bottle lands in recycling — easy and eco-friendly.
-
-    Product: Productivity app
-    1. A woman taps “Start Focus” — her world narrows, distractions fade.
-    2. A man stretches after a “Break time” notification — refreshed.
-    3. She glances at a progress streak — “Boost your productivity today.”
-    4. Voice input adds a task — “Buy milk” appears instantly.
-    5. A progress chart fills — motivation building with every task.
-
-    Now write 5 grounded, cinematic scenes for the product described above.
-    `.trim();
+Now generate 3 short, human-centered ad scenes for the product above.
+`.trim();
 
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",

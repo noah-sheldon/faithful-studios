@@ -1286,7 +1286,7 @@ function getProgressPercent(step?: string, type?: string): number {
   const stepsByType: Record<string, string[]> = {
     avatar: ["queued", "script_done", "avatar_video_done", "done"],
     wearable: ["queued", "uploaded_inputs", "processing", "generating", "done"],
-    product: ["queued", "uploaded_input", "processing", "generating", "done"],
+    product: ["queued", "uploaded_inputs", "processing", "generating", "done"],
     default: [
       "queued",
       "bg_removed",
