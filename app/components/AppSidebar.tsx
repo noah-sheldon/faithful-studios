@@ -101,12 +101,12 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/posters" className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-muted-foreground cursor-not-allowed opacity-50 px-2 py-1.5 rounded">
                     <ImageIcon className="w-4 h-4" />
                     <span className="group-data-[state=collapsed]:hidden">
-                      Posters
+                      Posters (Coming soon)
                     </span>
-                  </Link>
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

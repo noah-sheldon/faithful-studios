@@ -28,7 +28,6 @@ import {
   Clock,
   FileVideo,
   ImageIcon,
-  Package,
   Plus,
   Download,
   RefreshCw,
@@ -98,16 +97,10 @@ const CREATE_OPTIONS = [
     description: "Create engaging short-form videos",
   },
   {
-    href: "/poster",
+    href: "/short-form-avatar",
     icon: ImageIcon,
-    label: "Poster",
-    description: "Design promotional posters",
-  },
-  {
-    href: "/product-showcase",
-    icon: Package,
-    label: "Product Showcase",
-    description: "Showcase your products",
+    label: "Short Form with Avatar",
+    description: "Create engaging short-form videos with avatars",
   },
   {
     href: "/product-showcase?type=wearable",
@@ -521,7 +514,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {CREATE_OPTIONS.map((option) => (
                   <Link key={option.href} href={option.href}>
                     <Card className="group hover:shadow-md transition-all duration-200 border-teal-100 hover:border-teal-300 cursor-pointer h-full">
