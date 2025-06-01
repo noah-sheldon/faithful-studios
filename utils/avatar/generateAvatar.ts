@@ -14,7 +14,7 @@ interface GenerateAvatarParams {
 export async function generateAvatar({
   description,
   lang,
-  avatarId = "marcus_primary",
+  avatarId = "any_male_primary",
 }: GenerateAvatarParams): Promise<{ requestId: string; status: "queued" }> {
   const requestId = uuidv4();
   console.log(`[${requestId}] Job created for language: ${lang}`);
