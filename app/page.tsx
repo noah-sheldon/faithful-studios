@@ -651,7 +651,7 @@ export default function Dashboard() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-4 mb-4 bg-teal-50">
+                <TabsList className="grid w-full grid-cols-4 mb-2 bg-teal-50">
                   <TabsTrigger
                     value="all"
                     className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
