@@ -21,6 +21,7 @@ export async function generateAvatar({
 
   await prisma.videoJob.create({
     data: {
+      id: uuidv4(),
       requestId,
       lang,
       description,
@@ -28,6 +29,7 @@ export async function generateAvatar({
       status: "queued",
       currentStep: "queued",
       falVideoJob: requestId,
+      updatedAt: new Date(),
     },
   });
 

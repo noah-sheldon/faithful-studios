@@ -12,6 +12,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
   Dialog,
@@ -34,15 +35,32 @@ import {
   Grid3X3,
   List,
   Play,
+  ChevronLeft,
+  ChevronRight,
+  Shirt,
+  Box,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import Image from "next/image";
+import dynamic from "next/dynamic";
+
+// Dynamically import 3D components to avoid SSR issues
+const Model3DViewer = dynamic(() => import("./components/model-3d-viewer"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full bg-slate-100 rounded-lg">
+      <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+    </div>
+  ),
+});
 
 type Job = {
   requestId: string;
   status: string;
   currentStep?: string;
   videoUrl?: string;
+  mergedImageUrl?: string[];
   error?: string;
   createdAt?: string;
   type?: string;
@@ -55,6 +73,20 @@ type VideoDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   videoUrl: string;
+  jobId: string;
+};
+
+type ImageCarouselDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  images: string[];
+  jobId: string;
+};
+
+type Model3DDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  modelUrl: string;
   jobId: string;
 };
 
@@ -76,6 +108,18 @@ const CREATE_OPTIONS = [
     icon: Package,
     label: "Product Showcase",
     description: "Showcase your products",
+  },
+  {
+    href: "/product-showcase?type=wearable",
+    icon: Shirt,
+    label: "Wearable",
+    description: "Virtual try-on experiences",
+  },
+  {
+    href: "/product-showcase?type=product",
+    icon: Box,
+    label: "Product 3D",
+    description: "3D product visualization",
   },
 ];
 
@@ -115,10 +159,235 @@ function VideoDialog({ isOpen, onClose, videoUrl, jobId }: VideoDialogProps) {
   );
 }
 
+function ImageCarouselDialog({
+  isOpen,
+  onClose,
+  images,
+  jobId,
+}: ImageCarouselDialogProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const downloadImage = (url: string, index: number) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `wearable-${jobId.slice(0, 8)}-${index + 1}.png`;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadAll = () => {
+    images.forEach((url, index) => {
+      setTimeout(() => downloadImage(url, index), index * 500);
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl w-[95vw]">
+        <DialogHeader>
+          <DialogTitle className="text-teal-700 flex items-center gap-2">
+            <Shirt className="h-5 w-5" />
+            Wearable Try-On Results
+          </DialogTitle>
+          <DialogDescription>
+            Job #{jobId.slice(0, 8)} • {currentIndex + 1} of {images.length}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="relative">
+          <div className="relative aspect-[3/4] max-h-[70vh] rounded-lg overflow-hidden border border-teal-100 bg-slate-50">
+            <Image
+              src={images[currentIndex] || "/placeholder.svg"}
+              alt={`Wearable result ${currentIndex + 1}`}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+            />
+
+            {images.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                  onClick={prevImage}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                  onClick={nextImage}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+
+          {images.length > 1 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentIndex ? "bg-teal-600" : "bg-slate-300"
+                  }`}
+                  onClick={() => setCurrentIndex(index)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between items-center gap-2 mt-4">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadImage(images[currentIndex], currentIndex)}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download Current
+            </Button>
+            {images.length > 1 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadAll}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download All
+              </Button>
+            )}
+          </div>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Model3DDialog({
+  isOpen,
+  onClose,
+  modelUrl,
+  jobId,
+}: Model3DDialogProps) {
+  const downloadModel = () => {
+    const link = document.createElement("a");
+    link.href = modelUrl;
+    link.download = `product-3d-${jobId.slice(0, 8)}.glb`;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle className="text-teal-700 flex items-center gap-2">
+            <Box className="h-5 w-5" />
+            3D Product Model
+          </DialogTitle>
+          <DialogDescription>Job #{jobId.slice(0, 8)}</DialogDescription>
+        </DialogHeader>
+
+        <div className="relative">
+          <div className="relative aspect-square max-h-[60vh] rounded-lg overflow-hidden border border-teal-100 bg-gradient-to-br from-slate-50 to-slate-100">
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+                </div>
+              }
+            >
+              <Model3DViewer modelUrl={modelUrl} />
+            </Suspense>
+          </div>
+
+          {/* 3D Controls Info */}
+          <div className="mt-4 p-3 bg-teal-50 rounded-lg border border-teal-200">
+            <h4 className="text-sm font-medium text-teal-800 mb-2">
+              3D Controls
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-teal-700">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
+                <span>Left click + drag to rotate</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
+                <span>Right click + drag to pan</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
+                <span>Scroll to zoom in/out</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center gap-2 mt-4">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadModel}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download Model
+            </Button>
+          </div>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [activeTab, setActiveTab] = useState("all");
   const [videoDialog, setVideoDialog] = useState<{
+    isOpen: boolean;
+    url: string;
+    jobId: string;
+  }>({
+    isOpen: false,
+    url: "",
+    jobId: "",
+  });
+  const [imageDialog, setImageDialog] = useState<{
+    isOpen: boolean;
+    images: string[];
+    jobId: string;
+  }>({
+    isOpen: false,
+    images: [],
+    jobId: "",
+  });
+  const [modelDialog, setModelDialog] = useState<{
     isOpen: boolean;
     url: string;
     jobId: string;
@@ -170,293 +439,335 @@ export default function Dashboard() {
     setVideoDialog((prev) => ({ ...prev, isOpen: false }));
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-slate-50">
-      {/* Video Dialog */}
-      <VideoDialog
-        isOpen={videoDialog.isOpen}
-        onClose={closeVideoDialog}
-        videoUrl={videoDialog.url}
-        jobId={videoDialog.jobId}
-      />
+  const openImageDialog = (images: string[], jobId: string) => {
+    setImageDialog({ isOpen: true, images, jobId });
+  };
 
-      {/* Compact Header */}
-      <div className="bg-white border-b border-teal-100 sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-teal-800">
-                Content Studio
-              </h1>
-              <p className="text-sm text-teal-600">
-                Create and manage your content projects
-              </p>
+  const closeImageDialog = () => {
+    setImageDialog((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const openModelDialog = (url: string, jobId: string) => {
+    setModelDialog({ isOpen: true, url, jobId });
+  };
+
+  const closeModelDialog = () => {
+    setModelDialog((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  return (
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-slate-50">
+        {/* Video Dialog */}
+        <VideoDialog
+          isOpen={videoDialog.isOpen}
+          onClose={closeVideoDialog}
+          videoUrl={videoDialog.url}
+          jobId={videoDialog.jobId}
+        />
+
+        {/* Image Carousel Dialog */}
+        <ImageCarouselDialog
+          isOpen={imageDialog.isOpen}
+          onClose={closeImageDialog}
+          images={imageDialog.images}
+          jobId={imageDialog.jobId}
+        />
+
+        {/* 3D Model Dialog */}
+        <Model3DDialog
+          isOpen={modelDialog.isOpen}
+          onClose={closeModelDialog}
+          modelUrl={modelDialog.url}
+          jobId={modelDialog.jobId}
+        />
+
+        {/* Compact Header */}
+        <div className="bg-white border-b border-teal-100 sticky top-0 z-10 shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-teal-800">
+                  Content Studio
+                </h1>
+                <p className="text-sm text-teal-600">
+                  Create and manage your content projects
+                </p>
+              </div>
+              <Button
+                onClick={() => refetch()}
+                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
             </div>
-            <Button
-              onClick={() => refetch()}
-              disabled={isLoading}
-              variant="outline"
-              size="sm"
-              className="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Compact Create Section */}
-        <Card className="border-teal-200 shadow-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-teal-800">
-              <Plus className="h-5 w-5 text-teal-600" />
-              Create New Content
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {CREATE_OPTIONS.map((option) => (
-                <Link key={option.href} href={option.href}>
-                  <Card className="group hover:shadow-md transition-all duration-200 border-teal-100 hover:border-teal-300 cursor-pointer h-full">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-teal-50 group-hover:bg-teal-100 transition-colors">
-                          <option.icon className="h-4 w-4 text-teal-600" />
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {/* Compact Create Section */}
+          <Card className="border-teal-200 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2 text-teal-800">
+                <Plus className="h-5 w-5 text-teal-600" />
+                Create New Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {CREATE_OPTIONS.map((option) => (
+                  <Link key={option.href} href={option.href}>
+                    <Card className="group hover:shadow-md transition-all duration-200 border-teal-100 hover:border-teal-300 cursor-pointer h-full">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-teal-50 group-hover:bg-teal-100 transition-colors">
+                            <option.icon className="h-4 w-4 text-teal-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-slate-900 group-hover:text-teal-700 transition-colors text-sm">
+                              {option.label}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {option.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-slate-900 group-hover:text-teal-700 transition-colors text-sm">
-                            {option.label}
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {option.description}
-                          </p>
-                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Compact Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="border-teal-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-green-500" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">
+                      Completed
+                    </p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {completedJobs.length}
+                    </p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-500 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-teal-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-amber-500" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">
+                      In Progress
+                    </p>
+                    <p className="text-2xl font-bold text-amber-600">
+                      {inProgressJobs.length}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-amber-500 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-teal-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-red-500" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Failed</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {errorJobs.length}
+                    </p>
+                  </div>
+                  <XCircle className="h-8 w-8 text-red-500 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-teal-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-teal-500" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">
+                      Total Jobs
+                    </p>
+                    <p className="text-2xl font-bold text-teal-700">
+                      {jobs?.length || 0}
+                    </p>
+                  </div>
+                  <FileVideo className="h-8 w-8 text-teal-500 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Jobs Section with Tabs and View Toggle */}
+          <Card className="border-teal-200 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-teal-800">Jobs</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center border border-teal-200 rounded-lg p-1">
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className={
+                        viewMode === "list"
+                          ? "bg-teal-600 hover:bg-teal-700"
+                          : "hover:bg-teal-50 text-teal-700"
+                      }
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                      className={
+                        viewMode === "grid"
+                          ? "bg-teal-600 hover:bg-teal-700"
+                          : "hover:bg-teal-50 text-teal-700"
+                      }
+                    >
+                      <Grid3X3 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-4 mb-4 bg-teal-50">
+                  <TabsTrigger
+                    value="all"
+                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                  >
+                    All ({jobs?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="completed"
+                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                  >
+                    Completed ({completedJobs.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="progress"
+                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                  >
+                    In Progress ({inProgressJobs.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="failed"
+                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                  >
+                    Failed ({errorJobs.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value={activeTab} className="mt-0">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="flex items-center gap-2 text-teal-700">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Loading jobs...</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Compact Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-teal-100 shadow-sm overflow-hidden">
-            <div className="h-1 bg-green-500" />
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    Completed
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {completedJobs.length}
-                  </p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-teal-100 shadow-sm overflow-hidden">
-            <div className="h-1 bg-amber-500" />
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    In Progress
-                  </p>
-                  <p className="text-2xl font-bold text-amber-600">
-                    {inProgressJobs.length}
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-amber-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-teal-100 shadow-sm overflow-hidden">
-            <div className="h-1 bg-red-500" />
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">Failed</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {errorJobs.length}
-                  </p>
-                </div>
-                <XCircle className="h-8 w-8 text-red-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-teal-100 shadow-sm overflow-hidden">
-            <div className="h-1 bg-teal-500" />
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    Total Jobs
-                  </p>
-                  <p className="text-2xl font-bold text-teal-700">
-                    {jobs?.length || 0}
-                  </p>
-                </div>
-                <FileVideo className="h-8 w-8 text-teal-500 opacity-20" />
-              </div>
+                    </div>
+                  ) : getFilteredJobs().length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <FileVideo className="h-12 w-12 text-teal-300 mb-4" />
+                      <h3 className="text-lg font-medium text-teal-800 mb-2">
+                        {activeTab === "all"
+                          ? "No jobs yet"
+                          : `No ${activeTab} jobs`}
+                      </h3>
+                      <p className="text-teal-600 mb-4">
+                        {activeTab === "all"
+                          ? "Create your first content to get started"
+                          : `No jobs in ${activeTab} status`}
+                      </p>
+                      {activeTab === "all" && (
+                        <Link href="/short-form">
+                          <Button className="gap-2 bg-teal-600 hover:bg-teal-700">
+                            <Plus className="h-4 w-4" />
+                            Create Content
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[600px] pr-4">
+                      {viewMode === "list" ? (
+                        <div className="space-y-3">
+                          {getFilteredJobs().map((job, index) => (
+                            <div key={job.requestId}>
+                              <CompactJobCard
+                                job={job}
+                                onViewVideo={openVideoDialog}
+                                onViewImages={openImageDialog}
+                                onView3DModel={openModelDialog}
+                              />
+                              {index < getFilteredJobs().length - 1 && (
+                                <Separator className="my-3 bg-teal-100" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {getFilteredJobs().map((job) => (
+                            <GridJobCard
+                              key={job.requestId}
+                              job={job}
+                              onViewVideo={openVideoDialog}
+                              onViewImages={openImageDialog}
+                              onView3DModel={openModelDialog}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
-
-        {/* Jobs Section with Tabs and View Toggle */}
-        <Card className="border-teal-200 shadow-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg text-teal-800">Jobs</CardTitle>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center border border-teal-200 rounded-lg p-1">
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className={
-                      viewMode === "list"
-                        ? "bg-teal-600 hover:bg-teal-700"
-                        : "hover:bg-teal-50 text-teal-700"
-                    }
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                    className={
-                      viewMode === "grid"
-                        ? "bg-teal-600 hover:bg-teal-700"
-                        : "hover:bg-teal-50 text-teal-700"
-                    }
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-4 mb-4 bg-teal-50">
-                <TabsTrigger
-                  value="all"
-                  className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                >
-                  All ({jobs?.length || 0})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="completed"
-                  className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                >
-                  Completed ({completedJobs.length})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="progress"
-                  className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                >
-                  In Progress ({inProgressJobs.length})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="failed"
-                  className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                >
-                  Failed ({errorJobs.length})
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={activeTab} className="mt-0">
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="flex items-center gap-2 text-teal-700">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Loading jobs...</span>
-                    </div>
-                  </div>
-                ) : getFilteredJobs().length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <FileVideo className="h-12 w-12 text-teal-300 mb-4" />
-                    <h3 className="text-lg font-medium text-teal-800 mb-2">
-                      {activeTab === "all"
-                        ? "No jobs yet"
-                        : `No ${activeTab} jobs`}
-                    </h3>
-                    <p className="text-teal-600 mb-4">
-                      {activeTab === "all"
-                        ? "Create your first content to get started"
-                        : `No jobs in ${activeTab} status`}
-                    </p>
-                    {activeTab === "all" && (
-                      <Link href="/short-form">
-                        <Button className="gap-2 bg-teal-600 hover:bg-teal-700">
-                          <Plus className="h-4 w-4" />
-                          Create Content
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                ) : (
-                  <ScrollArea className="h-[600px] pr-4">
-                    {viewMode === "list" ? (
-                      <div className="space-y-3">
-                        {getFilteredJobs().map((job, index) => (
-                          <div key={job.requestId}>
-                            <CompactJobCard
-                              job={job}
-                              onViewVideo={openVideoDialog}
-                            />
-                            {index < getFilteredJobs().length - 1 && (
-                              <Separator className="my-3 bg-teal-100" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {getFilteredJobs().map((job) => (
-                          <GridJobCard
-                            key={job.requestId}
-                            job={job}
-                            onViewVideo={openVideoDialog}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 
 function CompactJobCard({
   job,
   onViewVideo,
+  onViewImages,
+  onView3DModel,
 }: {
   job: Job;
   onViewVideo: (url: string, jobId: string) => void;
+  onViewImages: (images: string[], jobId: string) => void;
+  onView3DModel: (url: string, jobId: string) => void;
 }) {
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -494,6 +805,19 @@ function CompactJobCard({
   const StatusIcon = statusInfo.icon;
   const progressPercent = getProgressPercent(job.currentStep, job.type);
 
+  const getJobTypeIcon = (type?: string) => {
+    switch (type) {
+      case "wearable":
+        return Shirt;
+      case "product":
+        return Box;
+      default:
+        return FileVideo;
+    }
+  };
+
+  const JobTypeIcon = getJobTypeIcon(job.type);
+
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-lg border ${statusInfo.borderColor} hover:shadow-md transition-all duration-200`}
@@ -504,11 +828,8 @@ function CompactJobCard({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          {job.type === "avatar" ? (
-            <span className="font-medium text-slate-900 text-sm">
-              #{job.requestId.slice(0, 8)}
-            </span>
-          ) : (
+          <div className="flex items-center gap-1">
+            <JobTypeIcon className="h-3 w-3 text-slate-500" />
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="font-medium text-slate-900 text-sm cursor-help">
@@ -517,6 +838,10 @@ function CompactJobCard({
               </TooltipTrigger>
               <TooltipContent className="max-w-sm bg-white border border-teal-100 shadow-lg p-3 rounded-lg text-sm text-slate-700">
                 <div className="space-y-2">
+                  <div className="flex gap-1">
+                    <span className="font-semibold text-teal-700">Type:</span>
+                    <span className="capitalize">{job.type || "video"}</span>
+                  </div>
                   {job.language && (
                     <div className="flex gap-1">
                       <span className="font-semibold text-teal-700">
@@ -550,7 +875,7 @@ function CompactJobCard({
                 </div>
               </TooltipContent>
             </Tooltip>
-          )}
+          </div>
 
           <Badge
             variant={
@@ -569,7 +894,67 @@ function CompactJobCard({
       </div>
 
       <div className="flex-1 max-w-xs">
-        {job.status === "done" && job.videoUrl ? (
+        {job.status === "done" && job.type === "product" && job.videoUrl ? (
+          <div className="flex items-center gap-2">
+            <div
+              className="relative w-16 h-12 rounded border border-teal-200 overflow-hidden cursor-pointer group bg-gradient-to-br from-slate-100 to-slate-200"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Box className="h-6 w-6 text-slate-600" />
+              </div>
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Box className="h-4 w-4 text-white" />
+              </div>
+              <div className="absolute top-1 right-1 bg-teal-600 text-white text-xs px-1 rounded">
+                3D
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <Box className="h-3 w-3 mr-1" />
+              View 3D
+            </Button>
+          </div>
+        ) : job.status === "done" &&
+          job.type === "wearable" &&
+          job.mergedImageUrl ? (
+          <div className="flex items-center gap-2">
+            <div
+              className="relative w-16 h-12 rounded border border-teal-200 overflow-hidden cursor-pointer group"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <Image
+                src={job.mergedImageUrl[0] || "/placeholder.svg"}
+                alt="Wearable result"
+                fill
+                className="object-cover"
+                sizes="64px"
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <ImageIcon className="h-4 w-4 text-white" />
+              </div>
+              {job.mergedImageUrl.length > 1 && (
+                <div className="absolute top-1 right-1 bg-teal-600 text-white text-xs px-1 rounded">
+                  {job.mergedImageUrl.length}
+                </div>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <ImageIcon className="h-3 w-3 mr-1" />
+              View Images
+            </Button>
+          </div>
+        ) : job.status === "done" && job.videoUrl ? (
           <div className="flex items-center gap-2">
             <div
               className="relative w-16 h-12 rounded border border-teal-200 overflow-hidden cursor-pointer group"
@@ -619,9 +1004,13 @@ function CompactJobCard({
 function GridJobCard({
   job,
   onViewVideo,
+  onViewImages,
+  onView3DModel,
 }: {
   job: Job;
   onViewVideo: (url: string, jobId: string) => void;
+  onViewImages: (images: string[], jobId: string) => void;
+  onView3DModel: (url: string, jobId: string) => void;
 }) {
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -657,7 +1046,20 @@ function GridJobCard({
 
   const statusInfo = getStatusInfo(job.status);
   const StatusIcon = statusInfo.icon;
-  const progressPercent = getProgressPercent(job.currentStep);
+  const progressPercent = getProgressPercent(job.currentStep, job.type);
+
+  const getJobTypeIcon = (type?: string) => {
+    switch (type) {
+      case "wearable":
+        return Shirt;
+      case "product":
+        return Box;
+      default:
+        return FileVideo;
+    }
+  };
+
+  const JobTypeIcon = getJobTypeIcon(job.type);
 
   return (
     <Card
@@ -671,9 +1073,12 @@ function GridJobCard({
             <div className={`p-1.5 rounded-lg ${statusInfo.bgColor}`}>
               <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
             </div>
-            <span className="font-medium text-slate-900 text-sm">
-              #{job.requestId.slice(0, 8)}
-            </span>
+            <div className="flex items-center gap-1">
+              <JobTypeIcon className="h-3 w-3 text-slate-500" />
+              <span className="font-medium text-slate-900 text-sm">
+                #{job.requestId.slice(0, 8)}
+              </span>
+            </div>
           </div>
           <Badge
             variant={
@@ -689,7 +1094,67 @@ function GridJobCard({
           </Badge>
         </div>
 
-        {job.status === "done" && job.videoUrl ? (
+        {job.status === "done" && job.type === "product" && job.videoUrl ? (
+          <div className="space-y-3">
+            <div
+              className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group bg-gradient-to-br from-slate-100 to-slate-200"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Box className="h-12 w-12 text-slate-600" />
+              </div>
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Box className="h-8 w-8 text-white" />
+              </div>
+              <div className="absolute top-2 right-2 bg-teal-600 text-white text-xs px-2 py-1 rounded">
+                3D Model
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <Box className="h-3 w-3" />
+              View 3D Model
+            </Button>
+          </div>
+        ) : job.status === "done" &&
+          job.type === "wearable" &&
+          job.mergedImageUrl ? (
+          <div className="space-y-3">
+            <div
+              className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <Image
+                src={job.mergedImageUrl[0] || "/placeholder.svg"}
+                alt="Wearable result"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <ImageIcon className="h-8 w-8 text-white" />
+              </div>
+              {job.mergedImageUrl.length > 1 && (
+                <div className="absolute top-2 right-2 bg-teal-600 text-white text-xs px-2 py-1 rounded">
+                  {job.mergedImageUrl.length} images
+                </div>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <ImageIcon className="h-3 w-3" />
+              View Images
+            </Button>
+          </div>
+        ) : job.status === "done" && job.videoUrl ? (
           <div className="space-y-3">
             <div
               className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group"
@@ -745,6 +1210,8 @@ function GridJobCard({
 function getProgressPercent(step?: string, type?: string): number {
   const stepsByType: Record<string, string[]> = {
     avatar: ["queued", "script_done", "avatar_video_done", "done"],
+    wearable: ["queued", "uploaded_inputs", "processing", "generating", "done"],
+    product: ["queued", "uploaded_input", "processing", "generating", "done"],
     default: [
       "queued",
       "bg_removed",

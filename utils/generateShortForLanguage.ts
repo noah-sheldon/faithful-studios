@@ -30,12 +30,14 @@ export async function generateShortForLanguage({
   // Initial job creation
   await prisma.videoJob.create({
     data: {
+      id: uuidv4(),
       requestId,
       lang,
       type: "short",
       description,
       status: "queued",
       currentStep: "queued",
+      updatedAt: new Date(),
     },
   });
 
@@ -92,7 +94,7 @@ export async function generateShortForLanguage({
         where: { requestId },
         data: {
           currentStep: "merged avatar and product",
-          mergedImageUrl,
+          mergedImageUrl: [mergedImageUrl],
         },
       });
 
