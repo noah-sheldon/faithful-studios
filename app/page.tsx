@@ -38,9 +38,10 @@ import {
   ChevronRight,
   Shirt,
   Box,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 
@@ -119,7 +120,7 @@ const CREATE_OPTIONS = [
 function VideoDialog({ isOpen, onClose, videoUrl, jobId }: VideoDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl w-[90vw]">
+      <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-teal-700 flex items-center gap-2">
             <FileVideo className="h-5 w-5" />
@@ -130,11 +131,15 @@ function VideoDialog({ isOpen, onClose, videoUrl, jobId }: VideoDialogProps) {
         <div className="relative rounded-lg overflow-hidden border border-teal-100 bg-black aspect-video">
           <video src={videoUrl} controls autoPlay className="w-full h-full" />
         </div>
-        <div className="flex justify-end gap-2 mt-2">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="sm:order-1 order-2"
+          >
             Close
           </Button>
-          <Button asChild>
+          <Button asChild className="gap-2 sm:order-2 order-1">
             <a
               href={videoUrl}
               download
@@ -186,7 +191,7 @@ function ImageCarouselDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[95vw]">
+      <DialogContent className="max-w-4xl w-[95vw] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-teal-700 flex items-center gap-2">
             <Shirt className="h-5 w-5" />
@@ -244,8 +249,8 @@ function ImageCarouselDialog({
           )}
         </div>
 
-        <div className="flex justify-between items-center gap-2 mt-4">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mt-4">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-start">
             <Button
               variant="outline"
               size="sm"
@@ -253,7 +258,8 @@ function ImageCarouselDialog({
               className="gap-2"
             >
               <Download className="h-4 w-4" />
-              Download Current
+              <span className="hidden sm:inline">Download Current</span>
+              <span className="sm:hidden">Current</span>
             </Button>
             {images.length > 1 && (
               <Button
@@ -263,11 +269,16 @@ function ImageCarouselDialog({
                 className="gap-2"
               >
                 <Download className="h-4 w-4" />
-                Download All
+                <span className="hidden sm:inline">Download All</span>
+                <span className="sm:hidden">All</span>
               </Button>
             )}
           </div>
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto mt-2 sm:mt-0"
+          >
             Close
           </Button>
         </div>
@@ -294,7 +305,7 @@ function Model3DDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh]">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-teal-700 flex items-center gap-2">
             <Box className="h-5 w-5" />
@@ -338,19 +349,21 @@ function Model3DDialog({
           </div>
         </div>
 
-        <div className="flex justify-between items-center gap-2 mt-4">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={downloadModel}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download Model
-            </Button>
-          </div>
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadModel}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <Download className="h-4 w-4" />
+            Download Model
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto mt-2 sm:mt-0"
+          >
             Close
           </Button>
         </div>
@@ -362,6 +375,7 @@ function Model3DDialog({
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [activeTab, setActiveTab] = useState("all");
+  const [isMobile, setIsMobile] = useState(false);
   const [videoDialog, setVideoDialog] = useState<{
     isOpen: boolean;
     url: string;
@@ -389,6 +403,17 @@ export default function Dashboard() {
     url: "",
     jobId: "",
   });
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const {
     data: jobs,
@@ -478,9 +503,9 @@ export default function Dashboard() {
         {/* Compact Header */}
         <div className="bg-white border-b border-teal-100 sticky top-0 z-10 shadow-sm">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-teal-800">
+                <h1 className="text-xl sm:text-2xl font-bold text-teal-800">
                   Content Studio
                 </h1>
                 <p className="text-sm text-teal-600">
@@ -492,7 +517,7 @@ export default function Dashboard() {
                 disabled={isLoading}
                 variant="outline"
                 size="sm"
-                className="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+                className="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800 self-start sm:self-auto"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
@@ -613,36 +638,38 @@ export default function Dashboard() {
           <Card className="border-teal-200 shadow-sm overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <CardTitle className="text-lg text-teal-800">Jobs</CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center border border-teal-200 rounded-lg p-1">
-                    <Button
-                      variant={viewMode === "list" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("list")}
-                      className={
-                        viewMode === "list"
-                          ? "bg-teal-600 hover:bg-teal-700"
-                          : "hover:bg-teal-50 text-teal-700"
-                      }
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === "grid" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("grid")}
-                      className={
-                        viewMode === "grid"
-                          ? "bg-teal-600 hover:bg-teal-700"
-                          : "hover:bg-teal-50 text-teal-700"
-                      }
-                    >
-                      <Grid3X3 className="h-4 w-4" />
-                    </Button>
+                {!isMobile && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center border border-teal-200 rounded-lg p-1">
+                      <Button
+                        variant={viewMode === "list" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                        className={
+                          viewMode === "list"
+                            ? "bg-teal-600 hover:bg-teal-700"
+                            : "hover:bg-teal-50 text-teal-700"
+                        }
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === "grid" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("grid")}
+                        className={
+                          viewMode === "grid"
+                            ? "bg-teal-600 hover:bg-teal-700"
+                            : "hover:bg-teal-50 text-teal-700"
+                        }
+                      >
+                        <Grid3X3 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -651,32 +678,34 @@ export default function Dashboard() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-4 mb-2 bg-teal-50">
-                  <TabsTrigger
-                    value="all"
-                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                  >
-                    All ({jobs?.length || 0})
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="completed"
-                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                  >
-                    Completed ({completedJobs.length})
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="progress"
-                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                  >
-                    In Progress ({inProgressJobs.length})
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="failed"
-                    className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
-                  >
-                    Failed ({errorJobs.length})
-                  </TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto pb-1">
+                  <TabsList className="grid min-w-[300px] w-full grid-cols-4 mb-4 bg-teal-50">
+                    <TabsTrigger
+                      value="all"
+                      className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                    >
+                      All ({jobs?.length || 0})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="completed"
+                      className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                    >
+                      Done ({completedJobs.length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="progress"
+                      className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                    >
+                      Progress ({inProgressJobs.length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="failed"
+                      className="text-xs data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+                    >
+                      Failed ({errorJobs.length})
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 <TabsContent value={activeTab} className="mt-0">
                   {isLoading ? (
@@ -709,12 +738,24 @@ export default function Dashboard() {
                       )}
                     </div>
                   ) : (
-                    <ScrollArea className="h-[600px] pr-4">
-                      {viewMode === "list" ? (
+                    <ScrollArea className="h-[500px] sm:h-[600px] pr-4">
+                      {isMobile || viewMode === "grid" ? (
+                        <div className="space-y-4">
+                          {getFilteredJobs().map((job) => (
+                            <MobileJobCard
+                              key={job.requestId}
+                              job={job}
+                              onViewVideo={openVideoDialog}
+                              onViewImages={openImageDialog}
+                              onView3DModel={openModelDialog}
+                            />
+                          ))}
+                        </div>
+                      ) : (
                         <div className="space-y-3">
                           {getFilteredJobs().map((job, index) => (
                             <div key={job.requestId}>
-                              <CompactJobCard
+                              <DesktopJobCard
                                 job={job}
                                 onViewVideo={openVideoDialog}
                                 onViewImages={openImageDialog}
@@ -724,18 +765,6 @@ export default function Dashboard() {
                                 <Separator className="my-3 bg-teal-100" />
                               )}
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {getFilteredJobs().map((job) => (
-                            <GridJobCard
-                              key={job.requestId}
-                              job={job}
-                              onViewVideo={openVideoDialog}
-                              onViewImages={openImageDialog}
-                              onView3DModel={openModelDialog}
-                            />
                           ))}
                         </div>
                       )}
@@ -751,7 +780,266 @@ export default function Dashboard() {
   );
 }
 
-function CompactJobCard({
+// Mobile-optimized job card
+function MobileJobCard({
+  job,
+  onViewVideo,
+  onViewImages,
+  onView3DModel,
+}: {
+  job: Job;
+  onViewVideo: (url: string, jobId: string) => void;
+  onViewImages: (images: string[], jobId: string) => void;
+  onView3DModel: (url: string, jobId: string) => void;
+}) {
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case "done":
+        return {
+          icon: CheckCircle,
+          color: "text-green-600",
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+          label: "Completed",
+          badge: "success" as const,
+        };
+      case "error":
+        return {
+          icon: XCircle,
+          color: "text-red-600",
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+          label: "Failed",
+          badge: "destructive" as const,
+        };
+      default:
+        return {
+          icon: Clock,
+          color: "text-amber-600",
+          bgColor: "bg-amber-50",
+          borderColor: "border-amber-200",
+          label: "Processing",
+          badge: "secondary" as const,
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo(job.status);
+  const StatusIcon = statusInfo.icon;
+  const progressPercent = getProgressPercent(job.currentStep, job.type);
+
+  const getJobTypeIcon = (type?: string) => {
+    switch (type) {
+      case "wearable":
+        return Shirt;
+      case "product":
+        return Box;
+      default:
+        return FileVideo;
+    }
+  };
+
+  const JobTypeIcon = getJobTypeIcon(job.type);
+
+  return (
+    <Card className={`border ${statusInfo.borderColor} bg-white shadow-sm`}>
+      <CardContent className="p-4 space-y-4">
+        {/* Header with status and job info */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${statusInfo.bgColor}`}>
+              <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <JobTypeIcon className="h-4 w-4 text-slate-500" />
+                <span className="font-semibold text-slate-900">
+                  #{job.requestId.slice(0, 8)}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 font-mono">
+                {job.requestId.slice(8, 20)}...
+              </p>
+            </div>
+          </div>
+          <Badge
+            variant={
+              statusInfo.badge === "success" ? "default" : statusInfo.badge
+            }
+            className={`${
+              statusInfo.badge === "success"
+                ? "bg-teal-600 hover:bg-teal-700"
+                : ""
+            }`}
+          >
+            {statusInfo.label}
+          </Badge>
+        </div>
+
+        {/* Media Preview Section */}
+        {job.status === "done" && job.type === "product" && job.videoUrl ? (
+          <div className="space-y-3">
+            <div
+              className="relative w-full h-40 rounded-lg border border-teal-200 overflow-hidden cursor-pointer group bg-gradient-to-br from-slate-100 to-slate-200"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Box className="h-16 w-16 text-slate-600" />
+              </div>
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-center text-white">
+                  <Box className="h-8 w-8 mx-auto mb-1" />
+                  <p className="text-sm font-medium">View 3D Model</p>
+                </div>
+              </div>
+              <div className="absolute top-3 right-3 bg-teal-600 text-white text-sm px-3 py-1 rounded-full font-medium">
+                3D Model
+              </div>
+            </div>
+            <Button
+              className="w-full gap-2 bg-teal-600 hover:bg-teal-700 text-white h-12"
+              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
+            >
+              <Eye className="h-4 w-4" />
+              View 3D Model
+            </Button>
+          </div>
+        ) : job.status === "done" &&
+          job.type === "wearable" &&
+          job.mergedImageUrl ? (
+          <div className="space-y-3">
+            <div
+              className="relative w-full h-40 rounded-lg border border-teal-200 overflow-hidden cursor-pointer group"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <Image
+                src={job.mergedImageUrl[0] || "/placeholder.svg"}
+                alt="Wearable result"
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-center text-white">
+                  <ImageIcon className="h-8 w-8 mx-auto mb-1" />
+                  <p className="text-sm font-medium">View Images</p>
+                </div>
+              </div>
+              {job.mergedImageUrl.length > 1 && (
+                <div className="absolute top-3 right-3 bg-teal-600 text-white text-sm px-3 py-1 rounded-full font-medium">
+                  {job.mergedImageUrl.length} Images
+                </div>
+              )}
+            </div>
+            <Button
+              className="w-full gap-2 bg-teal-600 hover:bg-teal-700 text-white h-12"
+              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
+            >
+              <Eye className="h-4 w-4" />
+              View Images ({job.mergedImageUrl.length})
+            </Button>
+          </div>
+        ) : job.status === "done" && job.videoUrl ? (
+          <div className="space-y-3">
+            <div
+              className="relative w-full h-40 rounded-lg border border-teal-200 overflow-hidden cursor-pointer group"
+              onClick={() => onViewVideo(job.videoUrl!, job.requestId)}
+            >
+              <video
+                src={job.videoUrl}
+                className="w-full h-full object-cover"
+                muted
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-center text-white">
+                  <Play className="h-8 w-8 mx-auto mb-1" />
+                  <p className="text-sm font-medium">Play Video</p>
+                </div>
+              </div>
+            </div>
+            <Button
+              className="w-full gap-2 bg-teal-600 hover:bg-teal-700 text-white h-12"
+              onClick={() => onViewVideo(job.videoUrl!, job.requestId)}
+            >
+              <Play className="h-4 w-4" />
+              Play Video
+            </Button>
+          </div>
+        ) : job.status === "error" ? (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="h-4 w-4 text-red-600" />
+              <span className="text-sm font-medium text-red-800">
+                Error Details
+              </span>
+            </div>
+            <p className="text-sm text-red-700">
+              {job.error || "Unknown error occurred"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-800">
+                    Processing
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-amber-700">
+                  {Math.round(progressPercent)}%
+                </span>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-amber-700 capitalize">
+                  {job.currentStep || "queued"}
+                </p>
+                <Progress
+                  value={progressPercent}
+                  className="h-3 bg-amber-100"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Job Details */}
+        {(job.type || job.language || job.description) && (
+          <div className="pt-2 border-t border-slate-100">
+            <div className="space-y-2">
+              {job.type && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium text-slate-600">Type:</span>
+                  <span className="capitalize text-slate-800">{job.type}</span>
+                </div>
+              )}
+              {job.language && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium text-slate-600">Language:</span>
+                  <span className="text-slate-800">{job.language}</span>
+                </div>
+              )}
+              {job.description && (
+                <div className="text-sm">
+                  <span className="font-medium text-slate-600">
+                    Description:
+                  </span>
+                  <p className="text-slate-800 mt-1 line-clamp-2">
+                    {job.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Desktop job card (simplified version of the original)
+function DesktopJobCard({
   job,
   onViewVideo,
   onViewImages,
@@ -991,212 +1279,6 @@ function CompactJobCard({
         )}
       </div>
     </div>
-  );
-}
-
-function GridJobCard({
-  job,
-  onViewVideo,
-  onViewImages,
-  onView3DModel,
-}: {
-  job: Job;
-  onViewVideo: (url: string, jobId: string) => void;
-  onViewImages: (images: string[], jobId: string) => void;
-  onView3DModel: (url: string, jobId: string) => void;
-}) {
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case "done":
-        return {
-          icon: CheckCircle,
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
-          label: "Completed",
-          badge: "success" as const,
-        };
-      case "error":
-        return {
-          icon: XCircle,
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          borderColor: "border-red-200",
-          label: "Failed",
-          badge: "destructive" as const,
-        };
-      default:
-        return {
-          icon: Clock,
-          color: "text-amber-600",
-          bgColor: "bg-amber-50",
-          borderColor: "border-amber-200",
-          label: "Processing",
-          badge: "secondary" as const,
-        };
-    }
-  };
-
-  const statusInfo = getStatusInfo(job.status);
-  const StatusIcon = statusInfo.icon;
-  const progressPercent = getProgressPercent(job.currentStep, job.type);
-
-  const getJobTypeIcon = (type?: string) => {
-    switch (type) {
-      case "wearable":
-        return Shirt;
-      case "product":
-        return Box;
-      default:
-        return FileVideo;
-    }
-  };
-
-  const JobTypeIcon = getJobTypeIcon(job.type);
-
-  return (
-    <Card
-      className={`hover:shadow-md transition-all duration-200 border-${
-        statusInfo.borderColor.split("-")[1]
-      }`}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-lg ${statusInfo.bgColor}`}>
-              <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
-            </div>
-            <div className="flex items-center gap-1">
-              <JobTypeIcon className="h-3 w-3 text-slate-500" />
-              <span className="font-medium text-slate-900 text-sm">
-                #{job.requestId.slice(0, 8)}
-              </span>
-            </div>
-          </div>
-          <Badge
-            variant={
-              statusInfo.badge === "success" ? "default" : statusInfo.badge
-            }
-            className={`text-xs ${
-              statusInfo.badge === "success"
-                ? "bg-teal-600 hover:bg-teal-700"
-                : ""
-            }`}
-          >
-            {statusInfo.label}
-          </Badge>
-        </div>
-
-        {job.status === "done" && job.type === "product" && job.videoUrl ? (
-          <div className="space-y-3">
-            <div
-              className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group bg-gradient-to-br from-slate-100 to-slate-200"
-              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Box className="h-12 w-12 text-slate-600" />
-              </div>
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Box className="h-8 w-8 text-white" />
-              </div>
-              <div className="absolute top-2 right-2 bg-teal-600 text-white text-xs px-2 py-1 rounded">
-                3D Model
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
-              onClick={() => onView3DModel(job.videoUrl!, job.requestId)}
-            >
-              <Box className="h-3 w-3" />
-              View 3D Model
-            </Button>
-          </div>
-        ) : job.status === "done" &&
-          job.type === "wearable" &&
-          job.mergedImageUrl ? (
-          <div className="space-y-3">
-            <div
-              className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group"
-              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
-            >
-              <Image
-                src={job.mergedImageUrl[0] || "/placeholder.svg"}
-                alt="Wearable result"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <ImageIcon className="h-8 w-8 text-white" />
-              </div>
-              {job.mergedImageUrl.length > 1 && (
-                <div className="absolute top-2 right-2 bg-teal-600 text-white text-xs px-2 py-1 rounded">
-                  {job.mergedImageUrl.length} images
-                </div>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
-              onClick={() => onViewImages(job.mergedImageUrl!, job.requestId)}
-            >
-              <ImageIcon className="h-3 w-3" />
-              View Images
-            </Button>
-          </div>
-        ) : job.status === "done" && job.videoUrl ? (
-          <div className="space-y-3">
-            <div
-              className="relative w-full h-32 rounded border border-teal-200 overflow-hidden cursor-pointer group"
-              onClick={() => onViewVideo(job.videoUrl!, job.requestId)}
-            >
-              <video
-                src={job.videoUrl}
-                className="w-full h-full object-cover"
-                muted
-              />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Play className="h-8 w-8 text-white" />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
-              onClick={() => onViewVideo(job.videoUrl!, job.requestId)}
-            >
-              <Play className="h-3 w-3" />
-              View Video
-            </Button>
-          </div>
-        ) : job.status === "error" ? (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-xs text-red-800 truncate">
-              {job.error || "Unknown error"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-600">
-                {job.currentStep || "queued"}
-              </span>
-              <span className="text-slate-500">
-                {Math.round(progressPercent)}%
-              </span>
-            </div>
-            <Progress value={progressPercent} className="h-2 bg-teal-100" />
-          </div>
-        )}
-
-        <p className="text-xs text-slate-500 font-mono mt-2 truncate">
-          {job.requestId}
-        </p>
-      </CardContent>
-    </Card>
   );
 }
 
